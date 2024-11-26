@@ -253,7 +253,7 @@ int main() {
                 break;
 
             case 3:  // Creditos
-                cout << "Desenvolvido por [Nana e Malu]" << endl;
+                cout << "Desenvolvido por [Nana, Thaís e Malu]" << endl;
                 break;
 
             case 0:  // Sair
