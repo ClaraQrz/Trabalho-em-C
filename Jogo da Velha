@@ -1,0 +1,270 @@
+#include <iostream>
+#include <fstream>
+#include <cstdlib>  // Random
+using namespace std;
+
+// Armazenar o estado do jogo
+struct GameData {
+    int player1Score;
+    int player2Score;
+    int result;  // 1 = vitória do jogador 1, -1 = vitória do jogador 2, 0 = empate
+};
+
+// Criar Tabuleiro
+int** createBoard() {
+    int** board = new int*[3];  // Ponteiros para as linhas
+    for (int i = 0; i < 3; i++) {
+        board[i] = new int[3];  // Cria cada linha
+    }
+    return board;
+}
+
+// Inicializar o tabuleiro
+void init(int** board) {
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            board[i][j] = 0;  // Começando com 0
+        }
+    }
+}
+
+// Liberar a memória alocada para o tabuleiro
+void freeBoard(int** board) {
+    for (int i = 0; i < 3; i++) {
+        delete[] board[i];  // Cada linha
+    }
+    delete[] board;  // Libera o vetor de ponteiros
+}
+
+// Imprimir o bloco do tabuleiro
+char printBlock(int block) {
+    if (block == 0)
+        return ' ';
+    else if (block == 1)
+        return 'X';
+    else
+        return 'O';
+}
+
+// Melhorar a aprarêncencia
+void show(int** board) {
+    cout << endl;
+    for (int row = 0; row < 3; row++) {
+        for (int col = 0; col < 3; col++) {
+            cout << " " << printBlock(board[row][col]) << " ";
+            if (col < 2) cout << "|";  // Separador de colunas
+        }
+        cout << endl;
+        if (row < 2) cout << "---+---+---" << endl;  // Linha separadora
+    }
+    cout << endl;
+}
+
+// Função para jogar uma jogada
+void playMove(int** board, int player, bool isComputer = false) {
+    int row, col, check;
+
+    if (isComputer) {
+        // O computador joga aleatótiamente
+        do {
+            row = rand() % 3;
+            col = rand() % 3;
+            check = board[row][col];
+        } while (check != 0);  // Repete até encontrar uma posição vazia
+
+        cout << "Computador jogando na linha " << row + 1 << ", coluna " << col + 1 << endl;
+    } else {
+        // Jogador faz a jogada
+        do {
+            cout << "Linha: ";
+            cin >> row;
+            cout << "Coluna: ";
+            cin >> col;
+            row--; col--;  // Ajuste para índice de 0 a 2
+
+            check = board[row][col] || row < 0 || row > 2 || col < 0 || col > 2;
+            if (check)
+                cout << "Essa casa nao esta vazia ou fora do intervalo 3x3" << endl;
+        } while (check);
+    }
+
+    // Marca a posição escolhida
+    if (player == 0)
+        board[row][col] = 1;  // Jogador 1 (X)
+    else
+        board[row][col] = -1; // Jogador 2 (O)
+}
+
+// Função para verificar se há casas vazias no tabuleiro
+int checkContinue(int** board) {
+    for (int i = 0; i < 3; i++)
+        for (int j = 0; j < 3; j++)
+            if (board[i][j] == 0)
+                return 1;  // Ainda há espaços vazios
+    return 0;  // Não há mais espaços vazios
+}
+
+// Função para verificar se alguém venceu
+int checkWin(int** board) {
+    int row, col, sum;
+
+    // Verificar as linhas
+    for (row = 0; row < 3; row++) {
+        sum = 0;
+        for (col = 0; col < 3; col++)
+            sum += board[row][col];
+
+        if (sum == 3)
+            return 1;  // Jogador 1 venceu
+        if (sum == -3)
+            return -1; // Jogador 2 venceu
+    }
+
+    // Verificar as colunas
+    for (col = 0; col < 3; col++) {
+        sum = 0;
+        for (row = 0; row < 3; row++)
+            sum += board[row][col];
+
+        if (sum == 3)
+            return 1;  // Jogador 1 venceu
+        if (sum == -3)
+            return -1; // Jogador 2 venceu
+    }
+
+    // Verificar as diagonais
+    sum = 0;
+    for (row = 0; row < 3; row++)
+        sum += board[row][row];
+    if (sum == 3)
+        return 1;  // Jogador 1 venceu
+    if (sum == -3)
+        return -1; // Jogador 2 venceu
+
+    sum = board[0][2] + board[1][1] + board[2][0];
+    if (sum == 3)
+        return 1;  // Jogador 1 venceu
+    if (sum == -3)
+        return -1; // Jogador 2 venceu
+
+    return 0;  // Nenhum vencedor
+}
+
+// Função para jogar uma partida inteira
+int game(int** board, bool twoPlayers) {
+    int turn = 0, cont, win;
+
+    do {
+        show(board);
+        cout << "Jogador " << 1 + turn % 2 << endl;
+
+        if (twoPlayers || turn % 2 == 0) {  // Se for dois jogadores ou jogador 1
+            playMove(board, turn % 2);
+        } else {
+            playMove(board, turn % 2, true);  // Computador joga
+        }
+
+        turn++;
+        cont = checkContinue(board);
+        win = checkWin(board);
+    } while (cont && !win);
+
+    if (win == 1) {
+        cout << "Jogador 1 ganhou!" << endl;
+        return 1;
+    } else if (win == -1) {
+        cout << "Jogador 2 ganhou!" << endl;
+        return 2;
+    } else {
+        cout << "Empate!" << endl;
+        return 0;
+    }
+}
+
+// Salvar dados do jogo em um arquivo
+void saveGameData(int player1Score, int player2Score) {
+    ofstream file("game_data.txt", ios::app);  // Abre o arquivo para adicionar dados
+    if (file.is_open()) {
+        file << "Jogador 1: " << player1Score << " | Jogador 2: " << player2Score << endl;
+        file.close();
+    } else {
+        cout << "Erro ao salvar os dados do jogo!" << endl;
+    }
+}
+
+// Carregar os dados do jogo do arquivo
+void loadGameData() {
+    ifstream file("game_data.txt");
+    if (file.is_open()) {
+        string line;
+        cout << "Dados de jogos anteriores:" << endl;
+        while (getline(file, line)) {
+            cout << line << endl;
+        }
+        file.close();
+    } else {
+        cout << "Erro ao ler os dados do arquivo!" << endl;
+    }
+}
+
+// Mostrar o placar atual
+void scoreboard(int result, int& player1, int& player2) {
+    if (result == 1)
+        player1++;
+    if (result == 2)
+        player2++;
+
+    cout << "Placar: " << endl;
+    cout << player1 << " x " << player2 << endl;
+}
+
+// Menu principal
+void showMenu() {
+    cout << "\nMenu:" << endl;
+    cout << "1. Jogar" << endl;
+    cout << "2. Ver Ranking" << endl;
+    cout << "3. Creditos" << endl;
+    cout << "0. Sair" << endl;
+    cout << "Escolha uma opcao: ";
+}
+
+int main() {
+    int** board = createBoard();  // Cria o tabuleiro
+    int cont = 0, player1 = 0, player2 = 0, result;
+    bool twoPlayers;
+
+    do {
+        showMenu();
+        cin >> cont;
+
+        switch (cont) {
+            case 1:  // Jogar
+                cout << "Deseja jogar com outro jogador? (0 - No, 1 - Yes): ";
+                cin >> twoPlayers;
+
+                init(board);  // Tabuleiro começa com 0
+                result = game(board, twoPlayers);  // Joga o jogo
+                scoreboard(result, player1, player2);  // Atualiza o placar
+                saveGameData(player1, player2);  // Salva o placar no arquivo
+                break;
+
+            case 2:  // Ver Ranking
+                loadGameData();
+                break;
+
+            case 3:  // Creditos
+                cout << "Desenvolvido por [Nana e Malu]" << endl;
+                break;
+
+            case 0:  // Sair
+                cout << "Saindo..." << endl;
+                break;
+
+            default:
+                cout << "Opção inválida!" << endl;
+        }
+    } while (cont != 0);
+
+    freeBoard(board);  // Libera a memória do tabuleiro
+    return 0;
+}
