@@ -1,42 +1,42 @@
 #include <iostream>
 #include <fstream>
-#include <cstdlib>  // Random
+#include <cstdlib>  // Para usar rand()
 using namespace std;
 
-// Armazenar o estado do jogo
+// Estrutura para armazenar o estado do jogo
 struct GameData {
     int player1Score;
     int player2Score;
-    int result;  // 1 = vitória do jogador 1, -1 = vitória do jogador 2, 0 = empate
+    int result;  // 1 para vitória do jogador 1, -1 para vitória do jogador 2, 0 para empate
 };
 
-// Criar Tabuleiro
+// Função para criar um tabuleiro de forma dinâmica
 int** createBoard() {
-    int** board = new int*[3];  // Ponteiros para as linhas
+    int** board = new int*[3];  // Cria o vetor de ponteiros para as linhas
     for (int i = 0; i < 3; i++) {
-        board[i] = new int[3];  // Cria cada linha
+        board[i] = new int[3];  // Cria cada linha (vetor de 3 inteiros)
     }
     return board;
 }
 
-// Inicializar o tabuleiro
+// Função para inicializar o tabuleiro (usando alocação dinâmica)
 void init(int** board) {
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
-            board[i][j] = 0;  // Começando com 0
+            board[i][j] = 0;  // Inicializa as casas com 0
         }
     }
 }
 
-// Liberar a memória alocada para o tabuleiro
+// Função para liberar a memória alocada para o tabuleiro
 void freeBoard(int** board) {
     for (int i = 0; i < 3; i++) {
-        delete[] board[i];  // Cada linha
+        delete[] board[i];  // Libera cada linha
     }
     delete[] board;  // Libera o vetor de ponteiros
 }
 
-// Imprimir o bloco do tabuleiro
+// Função para imprimir o bloco do tabuleiro
 char printBlock(int block) {
     if (block == 0)
         return ' ';
@@ -46,16 +46,16 @@ char printBlock(int block) {
         return 'O';
 }
 
-// Melhorar a aprarêncencia
+// Função para exibir o tabuleiro com uma aparência melhorada
 void show(int** board) {
     cout << endl;
     for (int row = 0; row < 3; row++) {
         for (int col = 0; col < 3; col++) {
             cout << " " << printBlock(board[row][col]) << " ";
-            if (col < 2) cout << "|";  // Separador de colunas
+            if (col < 2) cout << "|";  // Imprime separador de colunas
         }
         cout << endl;
-        if (row < 2) cout << "---+---+---" << endl;  // Linha separadora
+        if (row < 2) cout << "---+---+---" << endl;  // Imprime linha separadora
     }
     cout << endl;
 }
@@ -65,7 +65,7 @@ void playMove(int** board, int player, bool isComputer = false) {
     int row, col, check;
 
     if (isComputer) {
-        // O computador joga aleatótiamente
+        // O computador faz uma jogada aleatória
         do {
             row = rand() % 3;
             col = rand() % 3;
@@ -74,7 +74,7 @@ void playMove(int** board, int player, bool isComputer = false) {
 
         cout << "Computador jogando na linha " << row + 1 << ", coluna " << col + 1 << endl;
     } else {
-        // Jogador faz a jogada
+        // Jogador humano faz a jogada
         do {
             cout << "Linha: ";
             cin >> row;
@@ -169,6 +169,8 @@ int game(int** board, bool twoPlayers) {
         win = checkWin(board);
     } while (cont && !win);
 
+    show(board);  // Adicionada chamada para mostrar o estado final do tabuleiro
+
     if (win == 1) {
         cout << "Jogador 1 ganhou!" << endl;
         return 1;
@@ -181,7 +183,7 @@ int game(int** board, bool twoPlayers) {
     }
 }
 
-// Salvar dados do jogo em um arquivo
+// Função para salvar os dados do jogo em um arquivo
 void saveGameData(int player1Score, int player2Score) {
     ofstream file("game_data.txt", ios::app);  // Abre o arquivo para adicionar dados
     if (file.is_open()) {
@@ -192,7 +194,7 @@ void saveGameData(int player1Score, int player2Score) {
     }
 }
 
-// Carregar os dados do jogo do arquivo
+// Função para carregar os dados do jogo do arquivo
 void loadGameData() {
     ifstream file("game_data.txt");
     if (file.is_open()) {
@@ -207,7 +209,7 @@ void loadGameData() {
     }
 }
 
-// Mostrar o placar atual
+// Função para mostrar o placar atual
 void scoreboard(int result, int& player1, int& player2) {
     if (result == 1)
         player1++;
@@ -218,7 +220,7 @@ void scoreboard(int result, int& player1, int& player2) {
     cout << player1 << " x " << player2 << endl;
 }
 
-// Menu principal
+// Função para exibir o menu principal
 void showMenu() {
     cout << "\nMenu:" << endl;
     cout << "1. Jogar" << endl;
@@ -229,7 +231,7 @@ void showMenu() {
 }
 
 int main() {
-    int** board = createBoard();  // Cria o tabuleiro
+    int** board = createBoard();  // Cria o tabuleiro dinamicamente
     int cont = 0, player1 = 0, player2 = 0, result;
     bool twoPlayers;
 
@@ -242,7 +244,7 @@ int main() {
                 cout << "Deseja jogar com outro jogador? (0 - No, 1 - Yes): ";
                 cin >> twoPlayers;
 
-                init(board);  // Tabuleiro começa com 0
+                init(board);  // Inicializa o tabuleiro com 0
                 result = game(board, twoPlayers);  // Joga o jogo
                 scoreboard(result, player1, player2);  // Atualiza o placar
                 saveGameData(player1, player2);  // Salva o placar no arquivo
@@ -253,7 +255,7 @@ int main() {
                 break;
 
             case 3:  // Creditos
-                cout << "Desenvolvido por [Nana, Thaís e Malu]" << endl;
+                cout << "Desenvolvido por [Nana, Thais e Malu]" << endl;
                 break;
 
             case 0:  // Sair
